@@ -18,14 +18,39 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Project Setup
+        run: |
+        npm run setup
+        npm run dev:daemon
+
+
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          custom_instructions: |
+            The propject is already set up with all deps installed.
+            The server is already running at localhost:3000. Logs from it are being written to logs.txt. If needed you can query the db with the 'sqlite3' cli.
+            If needed, use the mcp__playwright set of tools to launch a browser adn interact with the app.
           prompt: |
             Review this pull request and provide feedback on code quality,
             potential bugs, security concerns, and adherence to the project's
             conventions described in CLAUDE.md. Be concise and constructive.
             Use `gh pr comment` and inline comments to leave feedback.
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"'
+          mcp_config: |
+            {
+              "mcpServers": {
+                "playwright": {
+                  "command": "npx",
+                  "args": [
+                    "@playwright/mcp@latest",
+                    "--allowed-origins",
+                    "localhost:3000;cdn.tailwindcss.com;esm.sh"
+                  ]
+                }
+              }
+            }
+          allowed_tools: "Bash(npm:*),Bash(sqlite3:*),mcp__playwright__browser_snapshot,mcp__playwright__browser_click,..."
+
