@@ -3,6 +3,12 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize]
+  pull_request_review_comment: 
+    types: [created]
+  issues:
+    types: [opened, assigned]
+  pull_request_review:
+    types: [submitted]
 
 jobs:
   claude-review:
@@ -20,8 +26,8 @@ jobs:
 
       - name: Project Setup
         run: |
-        npm run setup
-        npm run dev:daemon
+          npm run setup
+          npm run dev:daemon
 
 
       - name: Run Claude Code Review
